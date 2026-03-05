@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Harian SPPG</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --forest:#1a3a5c; --pine:#1e5799; --sage:#3b82f6;
+  --mint:#93c5fd; --foam:#dbeafe; --paper:#eff6ff;
+  --ink:#0f1e2e; --white:#fff; --warm:#e9c46a; --gold:#c9a84c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#bfdbfe;color:var(--ink);-webkit-font-smoothing:antialiased;}
+
+/* ══════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════ */
+#loginScreen{
+  position:fixed;inset:0;z-index:9000;
+  background:linear-gradient(145deg,#0a1f3a 0%,#1a3a5c 50%,#1e4a7a 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:24px 24px;pointer-events:none;
+}
+.login-box{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:24px;padding:48px 40px;
+  width:360px;max-width:90vw;
+  backdrop-filter:blur(12px);
+  position:relative;z-index:1;
+  box-shadow:0 24px 80px rgba(0,0,0,.4);
+  text-align:center;
+}
+.login-logo{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,#3b82f6,#1e5799);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin:0 auto 18px;
+  box-shadow:0 8px 24px rgba(59,130,246,.4);
+}
+.login-title{
+  font-family:'DM Serif Display',serif;
+  font-size:28px;font-style:italic;color:#fff;
+  letter-spacing:-.02em;margin-bottom:4px;
+}
+.login-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:32px;font-weight:500;}
+.login-field{margin-bottom:14px;text-align:left;}
+.login-field label{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.login-field input{
+  width:100%;padding:12px 16px;border-radius:10px;
+  background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);
+  color:#fff;font-family:inherit;font-size:14px;outline:none;
+  transition:border-color .2s;
+}
+.login-field input::placeholder{color:rgba(255,255,255,.3);}
+.login-field input:focus{border-color:#3b82f6;background:rgba(59,130,246,.1);}
+.login-error{
+  background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);
+  border-radius:8px;padding:8px 14px;font-size:12px;color:#fca5a5;
+  margin-bottom:14px;display:none;
+}
+.login-btn{
+  width:100%;padding:13px;border-radius:10px;
+  background:linear-gradient(135deg,#3b82f6,#1e5799);
+  color:#fff;font-family:inherit;font-size:14px;font-weight:700;
+  border:none;cursor:pointer;letter-spacing:.02em;
+  box-shadow:0 4px 16px rgba(59,130,246,.4);
+  transition:filter .2s;margin-top:4px;
+}
+.login-btn:hover{filter:brightness(1.1);}
+.login-footer{margin-top:20px;font-size:11px;color:rgba(255,255,255,.3);}
+
+/* ── TOPBAR (hidden on print) ── */
+.topbar{background:var(--white);border-bottom:1px solid var(--foam);padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.topbar-brand{display:flex;align-items:center;gap:8px;}
+.topbar-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);}
+.topbar-name{font-size:13px;font-weight:600;color:var(--forest);}
+.topbar-right{display:flex;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .18s;}
+.btn-ghost{background:transparent;color:var(--pine);border:1.5px solid var(--foam);}
+.btn-ghost:hover{background:var(--foam);}
+.btn-primary{background:var(--forest);color:#fff;}
+.btn-primary:hover{background:var(--pine);}
+.btn-warm{background:var(--warm);color:var(--ink);}
+.btn-warm:hover{filter:brightness(.93);}
+.edit-banner{display:none;background:var(--warm);color:var(--ink);text-align:center;padding:7px;font-size:12px;font-weight:700;}
+.edit-mode .edit-banner{display:block;}
+
+/* ══════════════════════════════
+   POSTER WRAPPER
+══════════════════════════════ */
+.poster-wrap{
+  width:794px; min-height:1123px;
+  margin:24px auto;
+  background:var(--paper);
+  position:relative; overflow:hidden;
+  box-shadow:0 8px 60px rgba(0,0,0,.25);
+}
+
+/* ── OUTER BORDER FRAME ── */
+.poster-wrap::before{
+  content:'';position:absolute;inset:10px;
+  border:2px solid var(--forest);
+  border-radius:4px;pointer-events:none;z-index:50;
+}
+.poster-wrap::after{
+  content:'';position:absolute;inset:15px;
+  border:1px solid rgba(82,183,136,.4);
+  border-radius:2px;pointer-events:none;z-index:50;
+}
+
+/* corner ornaments */
+.corner-tl,.corner-tr,.corner-bl,.corner-br{
+  position:absolute;width:36px;height:36px;z-index:51;pointer-events:none;
+}
+.corner-tl{top:6px;left:6px;border-top:3px solid var(--gold);border-left:3px solid var(--gold);border-radius:2px 0 0 0;}
+.corner-tr{top:6px;right:6px;border-top:3px solid var(--gold);border-right:3px solid var(--gold);border-radius:0 2px 0 0;}
+.corner-bl{bottom:6px;left:6px;border-bottom:3px solid var(--gold);border-left:3px solid var(--gold);border-radius:0 0 0 2px;}
+.corner-br{bottom:6px;right:6px;border-bottom:3px solid var(--gold);border-right:3px solid var(--gold);border-radius:0 0 2px 0;}
+
+/* ── HEADER BAND ── */
+.poster-header{
+  background:linear-gradient(160deg,#0a1f3a 0%,var(--forest) 45%,#1e4a7a 100%);
+  padding:32px 48px 28px;
+  position:relative;overflow:hidden;text-align:center;
+}
+.poster-header::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);background-size:20px 20px;z-index:0;}
+/* gold bottom border */
+.poster-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--warm),var(--gold),transparent);}
+
+/* botanical SVGs */
+.ph-bot{position:absolute;pointer-events:none;opacity:.14;z-index:1;}
+.ph-bot-l{left:0;bottom:0;}
+.ph-bot-r{right:0;top:0;transform:scaleX(-1);}
+
+.ph-inner{position:relative;z-index:2;}
+
+/* gold accent line */
+.gold-accent-line{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.gold-accent-line::before,.gold-accent-line::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(to right,transparent,rgba(233,196,106,.7));}
+.gold-accent-line::after{transform:scaleX(-1);}
+.gold-gem{width:7px;height:7px;background:var(--warm);transform:rotate(45deg);border-radius:1px;}
+
+.ph-sppg-pill{display:inline-flex;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 24px;margin-bottom:8px;}
+.ph-sppg-name{font-family:'DM Serif Display',serif;font-size:36px;font-style:italic;color:#fff;letter-spacing:-.02em;line-height:1.1;outline:none;white-space:nowrap;}
+
+.ph-title{font-family:'DM Serif Display',serif;font-size:52px;color:#fff;line-height:1;letter-spacing:-.02em;margin-bottom:6px;}
+.ph-title em{color:var(--mint);font-style:italic;}
+
+.ph-date-wrap{display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.5);border-radius:100px;padding:8px 28px;}
+.ph-date{font-size:17px;font-weight:600;color:var(--warm);letter-spacing:.02em;outline:none;white-space:nowrap;}
+.ph-date-icon{font-size:16px;}
+
+/* ── BODY ── */
+.poster-body{padding:22px 32px 24px;}
+
+/* section divider */
+.p-sec{display:flex;align-items:center;gap:12px;margin:0 0 12px;}
+.p-sec-line{flex:1;height:1px;}
+.p-sec-line.l{background:linear-gradient(to right,transparent,var(--mint));}
+.p-sec-line.r{background:linear-gradient(to left,transparent,var(--mint));}
+.p-sec-inner{display:flex;align-items:center;gap:5px;}
+.p-sec-diamond{width:5px;height:5px;background:var(--gold);transform:rotate(45deg);border-radius:1px;}
+.p-sec-title{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
+
+/* STATS ROW */
+.p-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.p-stat{
+  background:var(--white);border-radius:14px;padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+  border:1px solid rgba(82,183,136,.2);
+  position:relative;overflow:hidden;
+  box-shadow:0 2px 12px rgba(15,31,22,.07);
+}
+.p-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--warm),var(--gold));}
+.p-stat-icon{width:40px;height:40px;border-radius:12px;background:var(--foam);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.p-stat-num{font-family:'DM Serif Display',serif;font-size:26px;color:var(--forest);line-height:1;outline:none;}
+.p-stat-desc{font-size:10px;color:var(--pine);font-weight:500;opacity:.7;}
+.p-stat-tag{font-size:9px;font-weight:700;color:var(--forest);background:var(--foam);padding:1px 8px;border-radius:100px;letter-spacing:.04em;margin-top:4px;display:inline-block;}
+.edit-mode .p-stat-num{border-bottom:2px dashed var(--mint);cursor:text;}
+
+/* ── ORN DIVIDER ── */
+.orn-div{display:flex;align-items:center;margin:10px 0 12px;}
+.orn-div::before,.orn-div::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(82,183,136,.3),transparent);}
+.orn-div-center{padding:0 14px;display:flex;align-items:center;gap:7px;}
+.orn-div-center svg{display:block;}
+
+/* PORSI GRID */
+.p-porsi-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+.p-card{background:var(--white);border-radius:16px;overflow:hidden;border:1px solid rgba(82,183,136,.2);box-shadow:0 2px 14px rgba(15,31,22,.07);}
+
+.p-card-head{
+  background:linear-gradient(145deg,#0d1e33,var(--forest),#1e4a7a);
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  position:relative;overflow:hidden;
+}
+.p-card-head::before{content:'';position:absolute;right:-18px;top:-18px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.05);}
+.p-card-head::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.p-card-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.p-card-title{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;position:relative;z-index:1;}
+.p-card-badge{background:var(--warm);border-radius:10px;padding:5px 10px;text-align:center;min-width:54px;flex-shrink:0;position:relative;z-index:1;}
+.p-card-badge-num{font-family:'DM Serif Display',serif;font-size:17px;color:var(--ink);display:block;outline:none;line-height:1;}
+.p-card-badge-lbl{font-size:8px;font-weight:700;color:rgba(15,31,22,.6);letter-spacing:.05em;text-transform:uppercase;}
+.edit-mode .p-card-badge-num{border-bottom:2px dashed rgba(0,0,0,.3);cursor:text;}
+
+/* porsi image */
+.p-card-img-area{position:relative;overflow:hidden;background:var(--foam);}
+.p-card-img-area img{width:100%;display:block;object-fit:cover;user-select:none;}
+.p-card-img-area img.dragging{cursor:grabbing;}
+.p-card-img-toolbar{position:absolute;top:6px;right:6px;display:none;gap:4px;z-index:2;}
+.edit-mode .p-card-img-toolbar{display:flex;}
+.p-card-img-sizebar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:6px;background:rgba(0,0,0,.6);padding:4px 10px;border-radius:100px;z-index:2;white-space:nowrap;}
+.edit-mode .p-card-img-sizebar{display:flex;}
+.p-card-img-ph{width:100%;padding:16px;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:var(--foam);border-bottom:2px dashed var(--mint);text-align:center;display:none;}
+.edit-mode .p-card-img-ph{display:flex;}
+.p-card-img-ph:hover{background:#c7ead0;}
+.p-card-img-ph .ph-icon{font-size:22px;}.p-card-img-ph .ph-text{font-size:11px;color:var(--pine);font-weight:600;}
+
+/* items */
+.p-items{padding:8px 12px 4px;display:flex;flex-direction:column;gap:1px;}
+.p-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;transition:background .15s;}
+.p-item:hover{background:var(--paper);}
+.p-item-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+.p-item-name{font-size:12px;font-weight:500;color:var(--ink);flex:1;outline:none;}
+.p-item-price{font-size:12px;font-weight:600;color:var(--pine);white-space:nowrap;outline:none;}
+.p-item-note{font-size:9px;font-weight:700;color:#fff;background:var(--sage);padding:1px 7px;border-radius:100px;}
+.btn-remove-item{background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;line-height:1;padding:0 2px;display:none;flex-shrink:0;}
+.edit-mode .btn-remove-item{display:block;}
+.edit-mode .p-item-name{border-bottom:1px dashed var(--mint);cursor:text;}
+.edit-mode .p-item-price{border-bottom:1px dashed var(--mint);cursor:text;}
+
+.add-item-row{padding:4px 12px 8px;display:none;}
+.edit-mode .add-item-row{display:block;}
+.btn-add-item{width:100%;padding:5px;border-radius:6px;border:1.5px dashed var(--mint);background:transparent;color:var(--pine);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;}
+.btn-add-item:hover{background:var(--foam);}
+
+.p-total{margin:4px 12px 10px;padding:8px 14px;background:linear-gradient(120deg,var(--forest),#1e4a7a);border-radius:10px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden;}
+.p-total::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(233,196,106,.5),transparent);}
+.p-total-lbl{font-size:9px;color:rgba(255,255,255,.55);font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+.p-total-val{font-family:'DM Serif Display',serif;font-size:15px;color:var(--warm);}
+
+/* ── GIZI TABLE ── */
+.p-gizi-wrap{overflow-x:auto;border-radius:12px;box-shadow:0 2px 10px rgba(15,31,22,.07);}
+.p-gizi-wrap::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--forest),var(--sage),var(--warm),var(--sage),var(--forest));border-radius:12px 12px 0 0;}
+table{width:100%;border-collapse:collapse;background:var(--white);}
+thead tr{background:var(--forest);}
+th{padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;}
+td{padding:7px 10px;font-size:11px;border-bottom:1px solid var(--foam);}
+tr:last-child td{border-bottom:none;}
+td:first-child{font-weight:700;color:var(--forest);}
+tbody tr:nth-child(even) td{background:var(--paper);}
+tbody tr:hover td{background:var(--foam);}
+.edit-mode td[data-gizi]{outline:none;border-bottom:2px dashed var(--mint)!important;cursor:text;}
+
+/* ── FOOTER ── */
+.poster-footer{
+  text-align:center;padding:12px 20px 22px;
+  background:var(--paper);border-top:1px solid var(--foam);
+}
+.p-footer-orn{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;}
+.p-footer-line{width:50px;height:1px;background:linear-gradient(to right,transparent,var(--mint));}
+.p-footer-line.r{transform:scaleX(-1);}
+.p-footer-gems{display:flex;gap:4px;align-items:center;}
+.f-gem{width:5px;height:5px;background:var(--gold);transform:rotate(45deg);border-radius:1px;}
+.f-gem.sm{width:3px;height:3px;background:var(--sage);}
+.poster-footer p{font-size:11px;color:var(--sage);letter-spacing:.04em;}
+.poster-footer strong{color:var(--pine);}
+
+/* hide footer during jpg export */
+.jpg-export .poster-footer{display:none!important;}
+.jpg-export .poster-wrap{min-height:unset;}
+.float-btn{background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;font-family:inherit;white-space:nowrap;transition:background .18s;}
+.float-btn:hover{background:rgba(0,0,0,.88);}
+.float-btn-red{background:rgba(160,30,30,.7);}
+.float-btn-red:hover{background:rgba(160,30,30,.95);}
+.sizebar-lbl{font-size:10px;color:#fff;font-weight:600;}
+.sizebar-inp{width:70px;accent-color:#3b82f6;}
+
+/* ══════════════════════════════
+   SCHOOL MANAGEMENT PANEL (GREEN THEME)
+══════════════════════════════ */
+#schoolPanel{
+  display:none;position:fixed;inset:0;z-index:8000;
+  background:#f0faf4;overflow-y:auto;
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:none!important;}
+  .topbar,.edit-banner,.add-item-row,.btn-remove-item,
+  .p-card-img-toolbar,.p-card-img-sizebar,.p-card-img-ph,
+  .date-picker-btn{display:none!important;}
+  .poster-wrap{margin:0;box-shadow:none;width:100%;min-height:auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ LOGIN SCREEN ════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🍽️</div>
+    <div class="login-title">SPPG Karangduak</div>
+    <div class="login-sub">Masuk untuk mengakses menu harian</div>
+    <div class="login-error" id="loginError">Username atau password salah!</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Masukkan username" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Masuk →</button>
+    <div class="login-footer">© 2026 SPPG Karangduak</div>
+  </div>
+</div>
+
+<div class="edit-banner">✏️ MODE EDIT AKTIF — Klik teks untuk mengedit · Geser foto untuk reposisi</div>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-dot"></div>
+    <span class="topbar-name" id="topbarName">SPPG Karangduak</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" id="btnEdit" onclick="toggleEdit()">✏️ Edit</button>
+    <button class="btn btn-warm"  id="btnSave" onclick="saveData()" style="display:none">💾 Simpan</button>
+    <button class="btn btn-primary" onclick="exportPDF()">↓ PDF</button>
+    <button class="btn btn-primary" onclick="exportJPG()" style="background:#1e5799;">↓ JPG</button>
+    <button class="btn btn-ghost" onclick="openSchoolPanel()" style="background:#d8f3dc;border-color:#52b788;color:#1b4332;">🗂️ Data Master</button>
+    <button class="btn btn-ghost" onclick="bukaMenuSekolah()" style="background:#d8f3dc;border-color:#52b788;color:#1b4332;">🏫 Sekolah</button>
+    <button class="btn btn-ghost" onclick="doLogout()" style="border-color:#fca5a5;color:#dc2626;">⎋ Keluar</button>
+  </div>
+</div>
+
+<input type="file" id="fileBesarImg" accept="image/*" style="display:none" onchange="handleImg('besar',this)">
+<input type="file" id="fileKecilImg" accept="image/*" style="display:none" onchange="handleImg('kecil',this)">
+
+<!-- ════ DATA MASTER — DATA SEKOLAH PANEL ════ -->
+<div id="schoolPanel" style="display:none;position:fixed;inset:0;z-index:8000;background:#e9f5ec;overflow-y:auto;">
+
+  <!-- topbar -->
+  <div style="background:#1b4332;padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 16px rgba(0,0,0,.2);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:9px;height:9px;border-radius:50%;background:#52b788;"></div>
+      <span style="font-family:'DM Serif Display',serif;font-size:18px;font-style:italic;color:#fff;">SPPG Karangduak</span>
+      <span style="color:rgba(255,255,255,.3);margin:0 4px;">›</span>
+      <span style="font-size:12px;font-weight:700;color:#95d5b2;">Data Master › Data Sekolah</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <!-- TAB BUTTONS -->
+      <button id="dmTabBtnForm" onclick="dmSwitchTab('form')" style="background:#52b788;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">➕ Tambah Lembaga</button>
+      <button id="dmTabBtnList" onclick="dmSwitchTab('list')" style="background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Daftar Lembaga</button>
+      <button onclick="closeSchoolPanel()" style="background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">← Kembali</button>
+    </div>
+  </div>
+
+  <!-- page header -->
+  <div style="padding:20px 28px 8px;">
+    <h1 id="dmPageTitle" style="font-family:'DM Serif Display',serif;font-size:30px;color:#1b4332;letter-spacing:-.02em;">Tambah Lembaga</h1>
+    <p style="font-size:13px;color:#2d6a4f;margin-top:3px;opacity:.7;">Kelola data lembaga penerima program Makan Bergizi Gratis (MBG)</p>
+  </div>
+
+  <!-- TAB: FORM -->
+  <div id="dmTabForm" style="padding:0 28px 40px;max-width:560px;">
+    <!-- FORM CARD -->
+    <div style="background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(15,31,22,.08);overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1b4332,#2d6a4f);padding:20px 24px;position:relative;">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+        <div id="dmFormTitle" style="font-family:'DM Serif Display',serif;font-size:20px;color:#fff;font-style:italic;">Tambah Lembaga</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;">Isi data lembaga penerima MBG</div>
+      </div>
+      <div style="padding:24px;">
+        <input type="hidden" id="dmEditIdx" value="-1">
+
+        <!-- Nama -->
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">Nama Lembaga <span style="color:#dc2626;">*</span></label>
+          <input type="text" id="dmNama" placeholder="contoh: SDN 01 Karangduak" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#f0faf4;font-family:inherit;font-size:13px;color:#0f1f16;outline:none;">
+        </div>
+
+        <!-- Jenjang + Guru -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">Jenjang <span style="color:#dc2626;">*</span></label>
+            <select id="dmJenjang" onchange="dmOnJenjang()" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#f0faf4;font-family:inherit;font-size:13px;color:#0f1f16;outline:none;">
+              <option value="">— Pilih —</option>
+              <option value="TK">TK</option>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA">SMA/SMK</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">Jumlah Guru</label>
+            <input type="number" id="dmGuru" placeholder="0" min="0" oninput="dmHitung()" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#f0faf4;font-family:inherit;font-size:13px;color:#0f1f16;outline:none;">
+            <div style="font-size:11px;color:#2d6a4f;margin-top:3px;opacity:.7;">Semua guru → Porsi Besar</div>
+          </div>
+        </div>
+
+        <!-- TK: 1 field porsi kecil saja -->
+        <div id="dmSiswaTK" style="display:none;background:#f0faf4;border:1.5px solid #d8f3dc;border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <div style="width:3px;height:14px;background:#52b788;border-radius:2px;"></div>Jumlah Siswa
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;">Porsi Kecil</label>
+            <input type="number" id="dmSiswaTKKecil" placeholder="0" min="0" oninput="dmHitung()" style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#fff;font-family:inherit;font-size:13px;outline:none;">
+            <div style="font-size:10px;color:#2d6a4f;margin-top:3px;opacity:.7;">Seluruh siswa TK masuk Porsi Kecil</div>
+          </div>
+        </div>
+
+        <!-- SD: 2 field siswa -->
+        <div id="dmSiswa2" style="display:none;background:#f0faf4;border:1.5px solid #d8f3dc;border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <div style="width:3px;height:14px;background:#52b788;border-radius:2px;"></div>Jumlah Siswa
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;">Porsi Kecil</label>
+              <input type="number" id="dmSiswaKecil" placeholder="0" min="0" oninput="dmHitung()" style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#fff;font-family:inherit;font-size:13px;outline:none;">
+              <div style="font-size:10px;color:#2d6a4f;margin-top:3px;opacity:.7;">Balita / Siswa kecil</div>
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;">Porsi Besar</label>
+              <input type="number" id="dmSiswaBesar" placeholder="0" min="0" oninput="dmHitung()" style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#fff;font-family:inherit;font-size:13px;outline:none;">
+              <div style="font-size:10px;color:#2d6a4f;margin-top:3px;opacity:.7;">Bumil, Busui, dll</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMP/SMA: 1 field siswa -->
+        <div id="dmSiswa1" style="display:none;background:#f0faf4;border:1.5px solid #d8f3dc;border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;color:#1b4332;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <div style="width:3px;height:14px;background:#52b788;border-radius:2px;"></div>Jumlah Siswa
+          </div>
+          <input type="number" id="dmSiswaSemua" placeholder="0" min="0" oninput="dmHitung()" style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #d8f3dc;background:#fff;font-family:inherit;font-size:13px;outline:none;">
+          <div style="font-size:10px;color:#2d6a4f;margin-top:3px;opacity:.7;">Semua siswa otomatis masuk Porsi Besar</div>
+        </div>
+
+        <!-- MBG Result -->
+        <div style="background:linear-gradient(135deg,#1b4332,#1f5c3a);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;margin-bottom:18px;">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;">⚡ Jumlah Penerima MBG</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:rgba(255,255,255,.7);">Porsi Kecil</span>
+              <span id="dmMbgKecil" style="font-family:'DM Serif Display',serif;font-size:18px;color:#e9c46a;">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:rgba(255,255,255,.7);">Porsi Besar</span>
+              <span id="dmMbgBesar" style="font-family:'DM Serif Display',serif;font-size:18px;color:#e9c46a;">0</span>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.1);margin:2px 0;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:13px;color:#fff;font-weight:700;">Total MBG</span>
+              <span id="dmMbgTotal" style="font-family:'DM Serif Display',serif;font-size:24px;color:#e9c46a;">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;">
+          <button onclick="dmReset()" style="padding:11px 18px;border-radius:10px;background:#f0faf4;color:#1b4332;font-family:inherit;font-size:13px;font-weight:600;border:1.5px solid #d8f3dc;cursor:pointer;">↺ Reset</button>
+          <button onclick="dmSimpan()" style="flex:1;padding:11px;border-radius:10px;background:#1b4332;color:#fff;font-family:inherit;font-size:13px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(27,67,50,.25);">💾 Simpan Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: DAFTAR -->
+  <div id="dmTabList" style="display:none;padding:0 28px 40px;">
+    <!-- TABLE CARD -->
+    <div style="background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(15,31,22,.08);overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1b4332,#2d6a4f);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+        <span style="font-family:'DM Serif Display',serif;font-size:20px;color:#fff;font-style:italic;">Daftar Lembaga</span>
+        <span id="dmTblCount" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:#fff;">0 Lembaga</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f0faf4;border-bottom:2px solid #d8f3dc;">
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">#</th>
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">Nama Lembaga</th>
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">Jenjang</th>
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">Porsi Kecil</th>
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">Porsi Besar</th>
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">Total MBG</th>
+              <th style="padding:11px 14px;font-size:10px;font-weight:700;text-align:left;color:#1b4332;letter-spacing:.1em;text-transform:uppercase;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="dmTblBody"></tbody>
+        </table>
+        <div id="dmEmptyState" style="padding:40px;text-align:center;color:#2d6a4f;opacity:.6;">
+          <div style="font-size:36px;margin-bottom:8px;">🏫</div>
+          <p style="font-size:13px;">Belum ada data lembaga.<br>Tambahkan melalui tab Tambah Lembaga.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="printArea">
+<div class="poster-wrap">
+
+  <!-- corner ornaments -->
+  <div class="corner-tl"></div><div class="corner-tr"></div>
+  <div class="corner-bl"></div><div class="corner-br"></div>
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="poster-header">
+    <!-- botanical left -->
+    <svg class="ph-bot ph-bot-l" width="130" height="200" viewBox="0 0 130 200" fill="none">
+      <path d="M65 190 C65 190 15 155 8 105 C1 55 35 15 65 5" stroke="#3b82f6" stroke-width="1.8" fill="none"/>
+      <path d="M65 150 C65 150 22 135 14 108 C6 81 24 63 50 58" stroke="#3b82f6" stroke-width="1.4" fill="none"/>
+      <ellipse cx="48" cy="56" rx="24" ry="13" fill="#3b82f6" opacity=".55" transform="rotate(-30 48 56)"/>
+      <path d="M65 112 C65 112 18 98 12 75" stroke="#3b82f6" stroke-width="1.4" fill="none"/>
+      <ellipse cx="14" cy="69" rx="19" ry="11" fill="#3b82f6" opacity=".45" transform="rotate(-45 14 69)"/>
+      <circle cx="65" cy="192" r="3.5" fill="#e9c46a" opacity=".7"/>
+    </svg>
+    <!-- botanical right -->
+    <svg class="ph-bot ph-bot-r" width="130" height="200" viewBox="0 0 130 200" fill="none">
+      <path d="M65 190 C65 190 15 155 8 105 C1 55 35 15 65 5" stroke="#93c5fd" stroke-width="1.8" fill="none"/>
+      <path d="M65 150 C65 150 22 135 14 108 C6 81 24 63 50 58" stroke="#93c5fd" stroke-width="1.4" fill="none"/>
+      <ellipse cx="48" cy="56" rx="24" ry="13" fill="#93c5fd" opacity=".5" transform="rotate(-30 48 56)"/>
+      <path d="M65 112 C65 112 18 98 12 75" stroke="#93c5fd" stroke-width="1.4" fill="none"/>
+      <ellipse cx="14" cy="69" rx="19" ry="11" fill="#93c5fd" opacity=".4" transform="rotate(-45 14 69)"/>
+      <circle cx="65" cy="192" r="3.5" fill="#e9c46a" opacity=".65"/>
+    </svg>
+
+    <div class="ph-inner">
+      <div class="gold-accent-line"><div class="gold-gem"></div></div>
+
+      <div class="ph-sppg-pill">
+        <span class="ph-sppg-name" id="sppgName" contenteditable="false">SPPG KARANGDUAK</span>
+      </div>
+
+      <div class="ph-title">
+        <span id="judulLine1" contenteditable="false">Menu</span>
+        <em id="judulLine2" contenteditable="false">Hari Ini</em>
+      </div>
+
+      <div class="ph-date-wrap">
+        <span class="ph-date-icon">📅</span>
+        <span class="ph-date" id="dateDisplay" contenteditable="false">26 – 28 Februari 2026</span>
+        <div class="date-picker-btn" style="display:none;position:relative;">
+          <button style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:4px 12px;font-size:11px;color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">📆 Pilih</button>
+          <input type="date" id="datePicker" onchange="updateDate(this.value)" style="position:absolute;opacity:0;inset:0;cursor:pointer;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BODY ═══ -->
+  <div class="poster-body">
+
+    <!-- Detail Menu -->
+    <div class="p-sec" style="margin-bottom:10px;">
+      <div class="p-sec-line l"></div>
+      <div class="p-sec-inner"><div class="p-sec-diamond"></div><span class="p-sec-title">Detail Menu</span><div class="p-sec-diamond"></div></div>
+      <div class="p-sec-line r"></div>
+    </div>
+
+    <div class="p-porsi-grid">
+      <!-- BALITA -->
+      <div class="p-card">
+        <div class="p-card-head">
+          <div>
+            <div class="p-card-lbl">Paket</div>
+            <div class="p-card-title">Balita</div>
+          </div>
+          <div class="p-card-badge">
+            <span class="p-card-badge-num" id="besarJumlah2" contenteditable="false"></span>
+            <span class="p-card-badge-lbl">porsi</span>
+          </div>
+        </div>
+        <div class="p-card-img-area" id="besarImgBox" style="display:none">
+          <img id="besarImg" src="" alt="Balita" draggable="false">
+          <div class="p-card-img-toolbar">
+            <button class="float-btn" onclick="document.getElementById('fileBesarImg').click()">📷</button>
+            <button class="float-btn float-btn-red" onclick="removeImg('besar')">✕</button>
+          </div>
+          <div class="p-card-img-sizebar">
+            <span class="sizebar-lbl">Tinggi</span>
+            <input class="sizebar-inp" type="range" min="80" max="260" value="160" id="sliderBesar" oninput="resizeImg('besar',this.value)">
+          </div>
+        </div>
+        <div class="p-card-img-ph" id="besarImgPlaceholder" onclick="document.getElementById('fileBesarImg').click()">
+          <div class="ph-icon">🍱</div><div class="ph-text">Upload Foto Balita</div>
+        </div>
+        <div class="p-items" id="itemsBesar"></div>
+        <div class="add-item-row"><button class="btn-add-item" onclick="addItem('besar')">+ Tambah Item</button></div>
+        <div class="p-total">
+          <span class="p-total-lbl">Total / porsi</span>
+          <span class="p-total-val" id="totalBesar">Rp 30.000</span>
+        </div>
+      </div>
+
+      <!-- BUMIL & BUSUI -->
+      <div class="p-card">
+        <div class="p-card-head">
+          <div>
+            <div class="p-card-lbl">Paket</div>
+            <div class="p-card-title">Bumil & Busui</div>
+          </div>
+          <div class="p-card-badge">
+            <span class="p-card-badge-num" id="kecilJumlah2" contenteditable="false"></span>
+            <span class="p-card-badge-lbl">porsi</span>
+          </div>
+        </div>
+        <div class="p-card-img-area" id="kecilImgBox" style="display:none">
+          <img id="kecilImg" src="" alt="Bumil & Busui" draggable="false">
+          <div class="p-card-img-toolbar">
+            <button class="float-btn" onclick="document.getElementById('fileKecilImg').click()">📷</button>
+            <button class="float-btn float-btn-red" onclick="removeImg('kecil')">✕</button>
+          </div>
+          <div class="p-card-img-sizebar">
+            <span class="sizebar-lbl">Tinggi</span>
+            <input class="sizebar-inp" type="range" min="80" max="260" value="160" id="sliderKecil" oninput="resizeImg('kecil',this.value)">
+          </div>
+        </div>
+        <div class="p-card-img-ph" id="kecilImgPlaceholder" onclick="document.getElementById('fileKecilImg').click()">
+          <div class="ph-icon">🥡</div><div class="ph-text">Upload Foto Bumil & Busui</div>
+        </div>
+        <div class="p-items" id="itemsKecil"></div>
+        <div class="add-item-row"><button class="btn-add-item" onclick="addItem('kecil')">+ Tambah Item</button></div>
+        <div class="p-total">
+          <span class="p-total-lbl">Total / porsi</span>
+          <span class="p-total-val" id="totalKecil">Rp 24.000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- divider -->
+    <div class="orn-div" style="margin:8px 0 10px;">
+      <svg width="110" height="14" viewBox="0 0 110 14" fill="none">
+        <path d="M0 7 Q27 2 55 7 Q83 12 110 7" stroke="#3b82f6" stroke-width="1" fill="none"/>
+        <circle cx="55" cy="7" r="3" fill="#c9a84c"/>
+        <circle cx="27" cy="7" r="1.8" fill="#3b82f6"/>
+        <circle cx="83" cy="7" r="1.8" fill="#3b82f6"/>
+      </svg>
+    </div>
+
+    <!-- Kandungan Gizi -->
+    <div class="p-sec" style="margin-bottom:10px;">
+      <div class="p-sec-line l"></div>
+      <div class="p-sec-inner"><div class="p-sec-diamond"></div><span class="p-sec-title">Kandungan Gizi per Porsi</span><div class="p-sec-diamond"></div></div>
+      <div class="p-sec-line r"></div>
+    </div>
+    <div class="p-gizi-wrap">
+      <table>
+        <thead><tr>
+          <th>Jenis Porsi</th><th>Energi</th><th>Protein</th><th>Lemak</th><th>Karbohidrat</th><th>Serat</th>
+        </tr></thead>
+        <tbody id="giziBody"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /poster-body -->
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="poster-footer">
+    <div class="p-footer-orn">
+      <div class="p-footer-line"></div>
+      <div class="p-footer-gems">
+        <div class="f-gem sm"></div><div class="f-gem"></div><div class="f-gem sm"></div>
+      </div>
+      <div class="p-footer-line r"></div>
+    </div>
+    <p>© 2026 <strong id="footerName">SPPG Karangduak</strong> · Menu Harian Digital</p>
+  </div>
+
+</div><!-- /poster-wrap -->
+</div><!-- /printArea -->
+
+<script>
+const DEF={
+  sppgName:"SPPG KARANGDUAK", judulLine1:"Menu", judulLine2:"Hari Ini",
+  besarJumlah:"", kecilJumlah:"",
+  dateDisplay:"26 – 28 Februari 2026",
+  imgBesar:null, imgKecil:null,
+  imgBesarH:160, imgKecilH:160,
+  imgBesarY:50,  imgKecilY:50,
+  itemsBesar:[
+    {name:"Roti Selai",price:"Rp 10.000",note:""},
+    {name:"Susu",      price:"Rp 6.400", note:""},
+    {name:"Jeruk",     price:"Rp 6.000", note:""},
+    {name:"Kurma",     price:"Rp 2.600", note:""},
+    {name:"Abon",      price:"Rp 5.000", note:""},
+  ],
+  itemsKecil:[
+    {name:"Roti Selai",price:"Rp 10.000",note:""},
+    {name:"Susu",      price:"Rp 6.400", note:""},
+    {name:"Kurma",     price:"Rp 2.600", note:""},
+    {name:"Abon",      price:"Rp 5.000", note:""},
+  ],
+  gizi:[
+    {jenis:"Balita",energi:"1.078,9 kkal",protein:"54,4 g",lemak:"22,3 g",karbo:"175,5 g",serat:"6,2 g"},
+    {jenis:"Bumil & Busui",energi:"1.076,5 kkal",protein:"47,1 g",lemak:"24,6 g",karbo:"171,4 g",serat:"5,8 g"},
+  ]
+};
+
+var data;
+try{var s=localStorage.getItem('sppgData8');data=s?Object.assign(JSON.parse(JSON.stringify(DEF)),JSON.parse(s)):JSON.parse(JSON.stringify(DEF));}
+catch(e){data=JSON.parse(JSON.stringify(DEF));}
+var editMode=false;
+
+function srcKey(t){return t==='besar'?'imgBesar':'imgKecil';}
+function hKey(t){return t==='besar'?'imgBesarH':'imgKecilH';}
+function yKey(t){return t==='besar'?'imgBesarY':'imgKecilY';}
+function boxEl(t){return document.getElementById(t+'ImgBox');}
+function phEl(t){return document.getElementById(t+'ImgPlaceholder');}
+function imgEl(t){return document.getElementById(t+'Img');}
+function sliderEl(t){return document.getElementById(t==='besar'?'sliderBesar':'sliderKecil');}
+
+function applyImg(type){
+  var src=data[srcKey(type)],box=boxEl(type),ph=phEl(type),img=imgEl(type),sl=sliderEl(type);
+  if(src){
+    img.src=src;img.style.height=data[hKey(type)]+'px';img.style.objectPosition='50% '+data[yKey(type)]+'%';
+    if(sl)sl.value=data[hKey(type)];
+    box.style.display='block';ph.style.display='none';
+  }else{box.style.display='none';ph.style.display=editMode?'flex':'none';}
+}
+function resizeImg(type,val){data[hKey(type)]=parseInt(val);var img=imgEl(type);if(img)img.style.height=val+'px';}
+function removeImg(type){data[srcKey(type)]=null;applyImg(type);showToast('🗑️ Foto dihapus');}
+function handleImg(type,input){
+  var file=input.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){data[srcKey(type)]=e.target.result;applyImg(type);showToast('✅ Foto diupload!');};
+  r.readAsDataURL(file);input.value='';
+}
+
+var dragState={active:false,type:null,startY:0,startPos:0};
+document.addEventListener('mousemove',function(e){if(!dragState.active)return;var d=(dragState.startY-e.clientY)*.3,np=Math.max(0,Math.min(100,dragState.startPos+d));data[yKey(dragState.type)]=np;imgEl(dragState.type).style.objectPosition='50% '+np+'%';});
+document.addEventListener('touchmove',function(e){if(!dragState.active)return;var d=(dragState.startY-e.touches[0].clientY)*.3,np=Math.max(0,Math.min(100,dragState.startPos+d));data[yKey(dragState.type)]=np;imgEl(dragState.type).style.objectPosition='50% '+np+'%';},{passive:true});
+document.addEventListener('mouseup',function(){if(dragState.active){imgEl(dragState.type).classList.remove('dragging');dragState.active=false;}});
+document.addEventListener('touchend',function(){if(dragState.active){imgEl(dragState.type).classList.remove('dragging');dragState.active=false;}});
+function setupDrag(type){
+  var img=imgEl(type);
+  img.onmousedown=function(e){if(!editMode)return;dragState.active=true;dragState.type=type;dragState.startY=e.clientY;dragState.startPos=data[yKey(type)];img.classList.add('dragging');e.preventDefault();};
+  img.ontouchstart=function(e){if(!editMode)return;dragState.active=true;dragState.type=type;dragState.startY=e.touches[0].clientY;dragState.startPos=data[yKey(type)];img.classList.add('dragging');};
+}
+
+function renderItems(type,items){
+  var el=document.getElementById('items'+(type==='besar'?'Besar':'Kecil'));
+  el.innerHTML=items.map(function(item,i){
+    return '<div class="p-item">'+
+      '<div class="p-item-dot"></div>'+
+      '<span class="p-item-name" contenteditable="false">'+item.name+'</span>'+
+      '<span class="p-item-price" contenteditable="false">'+item.price+'</span>'+
+      (item.note?'<span class="p-item-note">'+item.note+'</span>':'')+
+      '<button class="btn-remove-item" onclick="removeItem(\''+type+'\','+i+')">×</button>'+
+      '</div>';
+  }).join('');
+  if(editMode)applyEditableToItems();
+}
+
+function renderGizi(){
+  document.getElementById('giziBody').innerHTML=data.gizi.map(function(row,i){
+    return '<tr>'+
+      '<td>'+row.jenis+'</td>'+
+      '<td data-gizi="'+i+'-energi" contenteditable="false">'+row.energi+'</td>'+
+      '<td data-gizi="'+i+'-protein" contenteditable="false">'+row.protein+'</td>'+
+      '<td data-gizi="'+i+'-lemak" contenteditable="false">'+row.lemak+'</td>'+
+      '<td data-gizi="'+i+'-karbo" contenteditable="false">'+row.karbo+'</td>'+
+      '<td data-gizi="'+i+'-serat" contenteditable="false">'+(row.serat||'–')+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+function calcTotals(){
+  function sum(arr){return arr.reduce(function(a,item){return a+(parseInt(item.price.replace(/[^0-9]/g,''))||0);},0);}
+  function fmt(n){return 'Rp '+n.toLocaleString('id-ID');}
+  document.getElementById('totalBesar').textContent=fmt(sum(data.itemsBesar));
+  document.getElementById('totalKecil').textContent=fmt(sum(data.itemsKecil));
+}
+
+function syncName(nm){
+  var display=nm.charAt(0)+nm.slice(1).toLowerCase();
+  document.getElementById('topbarName').textContent=display;
+  document.getElementById('footerName').textContent=display;
+}
+
+function load(){
+  var nm=data.sppgName||DEF.sppgName;
+  document.getElementById('sppgName').textContent=nm; syncName(nm);
+  document.getElementById('judulLine1').textContent=data.judulLine1||'Menu';
+  document.getElementById('judulLine2').textContent=data.judulLine2||'Hari Ini';
+  document.getElementById('besarJumlah2').textContent=data.besarJumlah;
+  document.getElementById('kecilJumlah2').textContent=data.kecilJumlah;
+  document.getElementById('dateDisplay').textContent=data.dateDisplay;
+  ['besar','kecil'].forEach(function(t){applyImg(t);setupDrag(t);});
+  renderItems('besar',data.itemsBesar); renderItems('kecil',data.itemsKecil);
+  renderGizi(); calcTotals();
+}
+
+function applyEditableToItems(){
+  document.querySelectorAll('.p-item-name,.p-item-price').forEach(function(el){el.contentEditable='true';el.oninput=syncFromDOM;});
+  document.querySelectorAll('[data-gizi]').forEach(function(el){el.contentEditable='true';el.oninput=syncGiziFromDOM;});
+}
+function syncFromDOM(){
+  ['besar','kecil'].forEach(function(type){
+    var el=document.getElementById('items'+(type==='besar'?'Besar':'Kecil'));
+    data[type==='besar'?'itemsBesar':'itemsKecil']=Array.from(el.querySelectorAll('.p-item')).map(function(row){
+      return{name:row.querySelector('.p-item-name').textContent.trim(),price:row.querySelector('.p-item-price').textContent.trim(),note:row.querySelector('.p-item-note')?row.querySelector('.p-item-note').textContent.trim():''};
+    });
+  });calcTotals();
+}
+function syncGiziFromDOM(){
+  document.querySelectorAll('[data-gizi]').forEach(function(el){
+    var p=el.getAttribute('data-gizi').split('-');if(data.gizi[p[0]])data.gizi[p[0]][p[1]]=el.textContent.trim();
+  });
+}
+
+function toggleEdit(){
+  editMode=!editMode;
+  document.body.classList.toggle('edit-mode',editMode);
+  document.getElementById('btnEdit').style.display=editMode?'none':'';
+  document.getElementById('btnSave').style.display=editMode?'':'none';
+  var dp=document.querySelector('.date-picker-btn');
+  if(dp)dp.style.display=editMode?'inline-flex':'none';
+  ['besarJumlah2','kecilJumlah2','sppgName','dateDisplay','judulLine1','judulLine2'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.contentEditable=editMode?'true':'false';
+  });
+  ['besar','kecil'].forEach(function(type){
+    var ph=phEl(type);if(ph)ph.style.display=(!data[srcKey(type)]&&editMode)?'flex':'none';
+  });
+  if(editMode){applyEditableToItems();showToast('✏️ Mode edit aktif');}
+  else document.querySelectorAll('[contenteditable]').forEach(function(el){el.contentEditable='false';});
+}
+
+function saveData(){
+  syncFromDOM();syncGiziFromDOM();
+  var nm=document.getElementById('sppgName').textContent.trim();
+  data.sppgName=nm; syncName(nm);
+  data.judulLine1=document.getElementById('judulLine1').textContent.trim();
+  data.judulLine2=document.getElementById('judulLine2').textContent.trim();
+  data.besarJumlah=document.getElementById('besarJumlah2').textContent.trim();
+  data.kecilJumlah=document.getElementById('kecilJumlah2').textContent.trim();
+  document.getElementById('besarJumlah2').textContent=data.besarJumlah;
+  document.getElementById('kecilJumlah2').textContent=data.kecilJumlah;
+  data.dateDisplay=document.getElementById('dateDisplay').textContent.trim();
+  try{localStorage.setItem('sppgData8',JSON.stringify(data));showToast('✅ Tersimpan!');}
+  catch(e){showToast('⚠️ Foto terlalu besar — coba kompres dulu');}
+  toggleEdit();
+}
+
+function addItem(type){
+  var key=type==='besar'?'itemsBesar':'itemsKecil';
+  data[key].push({name:'Item Baru',price:'Rp 0',note:''});
+  renderItems(type,data[key]);if(editMode)applyEditableToItems();calcTotals();
+}
+function removeItem(type,idx){
+  var key=type==='besar'?'itemsBesar':'itemsKecil';
+  data[key].splice(idx,1);renderItems(type,data[key]);if(editMode)applyEditableToItems();calcTotals();
+}
+function updateDate(val){
+  if(!val)return;
+  var d=new Date(val);
+  var m=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var txt=d.getDate()+' '+m[d.getMonth()]+' '+d.getFullYear();
+  document.getElementById('dateDisplay').textContent=txt;data.dateDisplay=txt;
+}
+
+function exportJPG(){
+  var el=document.getElementById('printArea');
+  document.body.classList.add('jpg-export');
+  showToast('⏳ Membuat JPG...');
+  setTimeout(function(){
+    html2canvas(el,{
+      scale:2, useCORS:true, allowTaint:true,
+      backgroundColor:'#eff6ff',
+      logging:false
+    }).then(function(canvas){
+      document.body.classList.remove('jpg-export');
+      var link=document.createElement('a');
+      link.download='Menu_SPPG.jpg';
+      link.href=canvas.toDataURL('image/jpeg',0.97);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('✅ JPG berhasil diunduh!');
+    }).catch(function(err){
+      document.body.classList.remove('jpg-export');
+      showToast('⚠️ Gagal buat JPG: '+err.message);
+    });
+  },150);
+}
+
+function exportPDF(){
+  var el=document.getElementById('printArea');
+  showToast('⏳ Membuat PDF...');
+  html2canvas(el,{
+    scale:2, useCORS:true, allowTaint:true,
+    backgroundColor:'#eff6ff',
+    logging:false
+  }).then(function(canvas){
+    var imgData=canvas.toDataURL('image/jpeg',0.97);
+    var pw=210, ph=297; // A4 mm
+    var cw=canvas.width, ch=canvas.height;
+    var ratio=cw/ch;
+    var imgH=pw/ratio;
+    var pdf=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var pages=Math.ceil(imgH/ph);
+    for(var i=0;i<pages;i++){
+      if(i>0)pdf.addPage();
+      var sy=i*ph*(cw/pw);
+      var sliceH=Math.min(ph*(cw/pw), ch-sy);
+      var sliceCanvas=document.createElement('canvas');
+      sliceCanvas.width=cw; sliceCanvas.height=sliceH;
+      sliceCanvas.getContext('2d').drawImage(canvas,0,sy,cw,sliceH,0,0,cw,sliceH);
+      var sliceImg=sliceCanvas.toDataURL('image/jpeg',0.97);
+      var dispH=sliceH*(pw/cw);
+      pdf.addImage(sliceImg,'JPEG',0,0,pw,dispH);
+    }
+    pdf.save('Menu_SPPG.pdf');
+    showToast('✅ PDF berhasil diunduh!');
+  }).catch(function(err){
+    showToast('⚠️ Gagal buat PDF: '+err.message);
+  });
+}
+function showToast(msg){
+  var t=document.createElement('div');t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a3a5c;color:#fff;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);transition:opacity .3s;white-space:nowrap;font-family:inherit;';
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove();},400);},2600);
+}
+
+// ── DATA MASTER — DATA SEKOLAH ──
+var dmSchools = [];
+try{var dms=localStorage.getItem('sppgDataSekolah');dmSchools=dms?JSON.parse(dms):[];}catch(e){dmSchools=[];}
+
+function dmSave(){try{localStorage.setItem('sppgDataSekolah',JSON.stringify(dmSchools));}catch(e){}}
+
+function dmSwitchTab(tab){
+  var isForm = tab==='form';
+  document.getElementById('dmTabForm').style.display = isForm ? 'block' : 'none';
+  document.getElementById('dmTabList').style.display = isForm ? 'none' : 'block';
+  document.getElementById('dmTabBtnForm').style.background = isForm ? '#52b788' : 'rgba(255,255,255,.1)';
+  document.getElementById('dmTabBtnForm').style.border = isForm ? 'none' : '1.5px solid rgba(255,255,255,.2)';
+  document.getElementById('dmTabBtnList').style.background = isForm ? 'rgba(255,255,255,.1)' : '#52b788';
+  document.getElementById('dmTabBtnList').style.border = isForm ? '1.5px solid rgba(255,255,255,.2)' : 'none';
+  document.getElementById('dmPageTitle').textContent = isForm ? 'Tambah Lembaga' : 'Daftar Lembaga';
+  if(!isForm) dmRenderTable();
+}
+
+function openSchoolPanel(){
+  dmRenderTable();
+  dmSwitchTab('form');
+  document.getElementById('schoolPanel').style.display='block';
+}
+function closeSchoolPanel(){
+  document.getElementById('schoolPanel').style.display='none';
+}
+
+function dmOnJenjang(){
+  var j=document.getElementById('dmJenjang').value;
+  document.getElementById('dmSiswaTK').style.display=(j==='TK')?'block':'none';
+  document.getElementById('dmSiswa2').style.display=(j==='SD')?'block':'none';
+  document.getElementById('dmSiswa1').style.display=(j==='SMP'||j==='SMA')?'block':'none';
+  document.getElementById('dmSiswaTKKecil').value='';
+  document.getElementById('dmSiswaKecil').value='';
+  document.getElementById('dmSiswaBesar').value='';
+  document.getElementById('dmSiswaSemua').value='';
+  dmHitung();
+}
+
+function dmHitung(){
+  var j=document.getElementById('dmJenjang').value;
+  var guru=parseInt(document.getElementById('dmGuru').value)||0;
+  var sk=0,sb=0;
+  if(j==='TK'){sk=parseInt(document.getElementById('dmSiswaTKKecil').value)||0;}
+  else if(j==='SD'){sk=parseInt(document.getElementById('dmSiswaKecil').value)||0;sb=parseInt(document.getElementById('dmSiswaBesar').value)||0;}
+  else if(j==='SMP'||j==='SMA'){sb=parseInt(document.getElementById('dmSiswaSemua').value)||0;}
+  var pk=sk, pb=sb+guru, tot=pk+pb;
+  document.getElementById('dmMbgKecil').textContent=pk.toLocaleString('id-ID');
+  document.getElementById('dmMbgBesar').textContent=pb.toLocaleString('id-ID');
+  document.getElementById('dmMbgTotal').textContent=tot.toLocaleString('id-ID');
+}
+
+function dmSimpan(){
+  var nama=document.getElementById('dmNama').value.trim();
+  var jenjang=document.getElementById('dmJenjang').value;
+  if(!nama){alert('Nama lembaga wajib diisi!');return;}
+  if(!jenjang){alert('Jenjang wajib dipilih!');return;}
+  var guru=parseInt(document.getElementById('dmGuru').value)||0;
+  var sk=0,sb=0;
+  if(jenjang==='TK'){sk=parseInt(document.getElementById('dmSiswaTKKecil').value)||0;}
+  else if(jenjang==='SD'){sk=parseInt(document.getElementById('dmSiswaKecil').value)||0;sb=parseInt(document.getElementById('dmSiswaBesar').value)||0;}
+  else{sb=parseInt(document.getElementById('dmSiswaSemua').value)||0;}
+  var obj={nama:nama,jenjang:jenjang,guru:guru,siswaKecil:sk,siswaBesar:sb,porsiKecil:sk,porsiBesar:sb+guru,total:sk+sb+guru};
+  var idx=parseInt(document.getElementById('dmEditIdx').value);
+  if(idx>=0){dmSchools[idx]=obj;showToast('✅ Data diperbarui!');}
+  else{dmSchools.push(obj);showToast('✅ Lembaga ditambahkan!');}
+  dmSave();dmRenderTable();dmReset();
+  dmSwitchTab('list');
+}
+
+function dmEditRow(i){
+  var d=dmSchools[i];
+  document.getElementById('dmEditIdx').value=i;
+  document.getElementById('dmNama').value=d.nama;
+  document.getElementById('dmJenjang').value=d.jenjang;
+  document.getElementById('dmGuru').value=d.guru||0;
+  dmOnJenjang();
+  if(d.jenjang==='TK'){document.getElementById('dmSiswaTKKecil').value=d.siswaKecil||0;}
+  else if(d.jenjang==='SD'){
+    document.getElementById('dmSiswaKecil').value=d.siswaKecil||0;
+    document.getElementById('dmSiswaBesar').value=d.siswaBesar||0;
+  }else{document.getElementById('dmSiswaSemua').value=d.siswaBesar||0;}
+  dmHitung();
+  document.getElementById('dmFormTitle').textContent='Edit Lembaga';
+  dmSwitchTab('form');
+  document.getElementById('schoolPanel').scrollTo({top:0,behavior:'smooth'});
+}
+
+function dmDeleteRow(i){
+  if(!confirm('Hapus "'+dmSchools[i].nama+'"?'))return;
+  dmSchools.splice(i,1);dmSave();dmRenderTable();showToast('🗑️ Data dihapus');
+}
+
+function dmReset(){
+  document.getElementById('dmEditIdx').value='-1';
+  document.getElementById('dmNama').value='';
+  document.getElementById('dmJenjang').value='';
+  document.getElementById('dmGuru').value='';
+  document.getElementById('dmSiswaTKKecil').value='';
+  document.getElementById('dmSiswaKecil').value='';
+  document.getElementById('dmSiswaBesar').value='';
+  document.getElementById('dmSiswaSemua').value='';
+  document.getElementById('dmSiswaTK').style.display='none';
+  document.getElementById('dmSiswa1').style.display='none';
+  document.getElementById('dmSiswa2').style.display='none';
+  document.getElementById('dmMbgKecil').textContent='0';
+  document.getElementById('dmMbgBesar').textContent='0';
+  document.getElementById('dmMbgTotal').textContent='0';
+  document.getElementById('dmFormTitle').textContent='Tambah Lembaga';
+}
+
+function dmRenderTable(){
+  var tbody=document.getElementById('dmTblBody');
+  var empty=document.getElementById('dmEmptyState');
+  document.getElementById('dmTblCount').textContent=dmSchools.length+' Lembaga';
+  if(!dmSchools.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  var badge={TK:'#fef3c7|#92400e',SD:'#dbeafe|#1e40af',SMP:'#ede9fe|#5b21b6',SMA:'#fce7f3|#9d174d'};
+  var totalKecil=0, totalBesar=0, totalAll=0;
+  var rows = dmSchools.map(function(d,i){
+    totalKecil += (d.porsiKecil||0);
+    totalBesar += (d.porsiBesar||0);
+    totalAll   += (d.total||0);
+    var bc=(badge[d.jenjang]||'#d8f3dc|#1b4332').split('|');
+    return '<tr style="border-bottom:1px solid #d8f3dc;">'+
+      '<td style="padding:11px 14px;font-size:12px;color:#2d6a4f;font-weight:600;">'+(i+1)+'</td>'+
+      '<td style="padding:11px 14px;font-size:12px;font-weight:600;color:#1b4332;">'+d.nama+'</td>'+
+      '<td style="padding:11px 14px;"><span style="display:inline-flex;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;background:'+bc[0]+';color:'+bc[1]+'">'+(d.jenjang==='SMA'?'SMA/SMK':d.jenjang)+'</span></td>'+
+      '<td style="padding:11px 14px;font-family:\'DM Serif Display\',serif;font-size:15px;color:#1b4332;">'+d.porsiKecil.toLocaleString('id-ID')+'</td>'+
+      '<td style="padding:11px 14px;"><div style="font-family:\'DM Serif Display\',serif;font-size:15px;color:#1b4332;">'+d.porsiBesar.toLocaleString('id-ID')+'</div><div style="font-size:10px;color:#2d6a4f;opacity:.7;">Siswa '+(d.siswaBesar||0)+' + Guru '+(d.guru||0)+'</div></td>'+
+      '<td style="padding:11px 14px;font-family:\'DM Serif Display\',serif;font-size:15px;color:#52b788;">'+d.total.toLocaleString('id-ID')+'</td>'+
+      '<td style="padding:11px 14px;"><div style="display:flex;gap:6px;">'+
+        '<button onclick="dmEditRow('+i+')" style="padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:#d8f3dc;color:#1b4332;">✏️ Edit</button>'+
+        '<button onclick="dmDeleteRow('+i+')" style="padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:#fee2e2;color:#dc2626;">🗑️</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+
+  // Total row
+  rows += '<tr style="background:linear-gradient(135deg,#1b4332,#1f5c3a);border-top:2px solid #c9a84c;">'+
+    '<td colspan="3" style="padding:12px 14px;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.08em;text-transform:uppercase;">TOTAL KESELURUHAN</td>'+
+    '<td style="padding:12px 14px;font-family:\'DM Serif Display\',serif;font-size:18px;color:#e9c46a;">'+totalKecil.toLocaleString('id-ID')+'</td>'+
+    '<td style="padding:12px 14px;font-family:\'DM Serif Display\',serif;font-size:18px;color:#e9c46a;">'+totalBesar.toLocaleString('id-ID')+'</td>'+
+    '<td style="padding:12px 14px;font-family:\'DM Serif Display\',serif;font-size:20px;color:#e9c46a;font-weight:700;">'+totalAll.toLocaleString('id-ID')+'</td>'+
+    '<td></td>'+
+  '</tr>';
+
+  tbody.innerHTML = rows;
+}
+
+// ── LOGIN ──
+var USERS = {
+  'admin':   'sppg2026',
+  'petugas': 'menu1234',
+};
+
+function doLogin(){
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value;
+  var err = document.getElementById('loginError');
+  if(USERS[u] && USERS[u] === p){
+    err.style.display='none';
+    document.getElementById('loginScreen').style.display='none';
+    sessionStorage.setItem('sppgAuth','1');
+  } else {
+    err.style.display='block';
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('sppgAuth');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginError').style.display='none';
+}
+
+// check session on load
+if(sessionStorage.getItem('sppgAuth')==='1'){
+  document.getElementById('loginScreen').style.display='none';
+}
+
+function hitungTotalMBGdariLembaga(){
+  var totalKecil=0, totalBesar=0;
+  dmSchools.forEach(function(d){
+    totalKecil += (d.porsiKecil||0);
+    totalBesar += (d.porsiBesar||0);
+  });
+  var fmtNum = function(n){ return n>0 ? n.toLocaleString('id-ID') : ''; };
+  document.getElementById('besarJumlah2').textContent = fmtNum(totalBesar);
+  document.getElementById('kecilJumlah2').textContent = fmtNum(totalKecil);
+  data.besarJumlah = fmtNum(totalBesar);
+  data.kecilJumlah = fmtNum(totalKecil);
+}
+
+load();
+
+// ══════════════════════════════
+// MENU SEKOLAH (HIJAU)
+// ══════════════════════════════
+function bukaMenuSekolah(){
+  // Ambil data terbaru dari home
+  var d = data;
+  try{
+    var s=localStorage.getItem('sppgData8');
+    if(s) d=Object.assign(JSON.parse(JSON.stringify(DEF)),JSON.parse(s));
+  }catch(e){}
+
+  // Isi konten poster hijau
+  document.getElementById('sk-namaDisplay').textContent = document.getElementById('sppgName').textContent.trim();
+  document.getElementById('sk-judul1').textContent = document.getElementById('judulLine1').textContent.trim();
+  document.getElementById('sk-judul2').textContent = document.getElementById('judulLine2').textContent.trim();
+  document.getElementById('sk-tanggal').textContent = document.getElementById('dateDisplay').textContent.trim();
+  // Hitung total dari data lembaga
+  var totalKecil=0, totalBesar=0;
+  dmSchools.forEach(function(d){ totalKecil+=(d.porsiKecil||0); totalBesar+=(d.porsiBesar||0); });
+  document.getElementById('sk-besarJml').textContent = totalBesar>0 ? totalBesar.toLocaleString('id-ID') : '';
+  document.getElementById('sk-kecilJml').textContent = totalKecil>0 ? totalKecil.toLocaleString('id-ID') : '';
+
+  // Items Balita
+  document.getElementById('sk-itemsBesar').innerHTML = d.itemsBesar.map(function(item){
+    return '<div class="sk-item"><div class="sk-dot"></div><span class="sk-iname">'+item.name+'</span><span class="sk-iprice">'+item.price+'</span><button class="sk-btn-del" onclick="this.parentElement.remove()" style="display:none;background:none;border:none;color:#c0392b;font-size:16px;cursor:pointer;padding:0 2px;">×</button></div>';
+  }).join('');
+
+  // Items Bumil & Busui
+  document.getElementById('sk-itemsKecil').innerHTML = d.itemsKecil.map(function(item){
+    return '<div class="sk-item"><div class="sk-dot"></div><span class="sk-iname">'+item.name+'</span><span class="sk-iprice">'+item.price+'</span><button class="sk-btn-del" onclick="this.parentElement.remove()" style="display:none;background:none;border:none;color:#c0392b;font-size:16px;cursor:pointer;padding:0 2px;">×</button></div>';
+  }).join('');
+
+  // Total
+  function sumItems(arr){return arr.reduce(function(a,i){return a+(parseInt(i.price.replace(/[^0-9]/g,''))||0);},0);}
+  function fmtRp(n){return 'Rp '+n.toLocaleString('id-ID');}
+  document.getElementById('sk-totalBesar').textContent = fmtRp(sumItems(d.itemsBesar));
+  document.getElementById('sk-totalKecil').textContent = fmtRp(sumItems(d.itemsKecil));
+
+  // Foto
+  ['besar','kecil'].forEach(function(t){
+    var src = d[t==='besar'?'imgBesar':'imgKecil'];
+    var box = document.getElementById('sk-imgBox-'+t);
+    var img = document.getElementById('sk-img-'+t);
+    if(src){ img.src=src; img.style.height=(d[t==='besar'?'imgBesarH':'imgKecilH']||160)+'px'; box.style.display='block'; }
+    else { box.style.display='none'; }
+  });
+
+  // Gizi
+  document.getElementById('sk-giziBody').innerHTML = d.gizi.map(function(row){
+    return '<tr><td>'+row.jenis+'</td><td>'+row.energi+'</td><td>'+row.protein+'</td><td>'+row.lemak+'</td><td>'+row.karbo+'</td><td>'+(row.serat||'–')+'</td></tr>';
+  }).join('');
+
+  document.getElementById('sk-footerName').textContent = document.getElementById('sppgName').textContent.trim();
+  // reset images
+  skImgData = {besar:null, kecil:null, besarH:160, kecilH:160, besarY:50, kecilY:50};
+  skApplyImg('besar'); skApplyImg('kecil');
+  setupSkDrag('besar'); setupSkDrag('kecil');
+
+  document.getElementById('menuSekolahPanel').style.display='block';
+  // reset edit mode
+  skEditMode = false;
+  document.getElementById('skBtnEdit').style.display='';
+  document.getElementById('skBtnSave').style.display='none';
+  document.getElementById('skEditBanner').style.display='none';
+}
+
+function tutupMenuSekolah(){
+  document.getElementById('menuSekolahPanel').style.display='none';
+}
+
+function skExportJPG(){
+  var el=document.getElementById('sk-printArea');
+  document.getElementById('menuSekolahPanel').classList.add('sk-jpg-export');
+  showToast('⏳ Membuat JPG...');
+  setTimeout(function(){
+    html2canvas(el,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#e8f5ec',logging:false}).then(function(canvas){
+      document.getElementById('menuSekolahPanel').classList.remove('sk-jpg-export');
+      var a=document.createElement('a');a.download='Menu_Sekolah.jpg';a.href=canvas.toDataURL('image/jpeg',0.97);
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      showToast('✅ JPG berhasil diunduh!');
+    }).catch(function(err){document.getElementById('menuSekolahPanel').classList.remove('sk-jpg-export');showToast('⚠️ '+err.message);});
+  },150);
+}
+
+var skEditMode = false;
+
+var skImgData = {besar:null, kecil:null, besarH:160, kecilH:160, besarY:50, kecilY:50};
+
+function skSrcKey(t){return t==='besar'?'besar':'kecil';}
+function skHKey(t){return t==='besar'?'besarH':'kecilH';}
+function skYKey(t){return t==='besar'?'besarY':'kecilY';}
+function skImgEl(t){return document.getElementById('sk-img-'+t);}
+function skBoxEl(t){return document.getElementById('sk-imgBox-'+t);}
+function skPhEl(t){return document.getElementById('sk-ph'+(t==='besar'?'Besar':'Kecil'));}
+function skSlEl(t){return document.getElementById('sk-slider'+(t==='besar'?'Besar':'Kecil'));}
+
+function skApplyImg(t){
+  var src=skImgData[skSrcKey(t)],box=skBoxEl(t),ph=skPhEl(t),img=skImgEl(t),sl=skSlEl(t);
+  if(src){
+    img.src=src;img.style.height=skImgData[skHKey(t)]+'px';img.style.objectPosition='50% '+skImgData[skYKey(t)]+'%';
+    if(sl)sl.value=skImgData[skHKey(t)];
+    box.style.display='block';ph.style.display='none';
+  }else{box.style.display='none';ph.style.display=skEditMode?'flex':'none';}
+}
+
+function skResizeImg(t,val){skImgData[skHKey(t)]=parseInt(val);var img=skImgEl(t);if(img)img.style.height=val+'px';}
+function skRemoveImg(t){skImgData[skSrcKey(t)]=null;skApplyImg(t);showToast('🗑️ Foto dihapus');}
+function skHandleImg(t,input){
+  var file=input.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){skImgData[skSrcKey(t)]=e.target.result;skApplyImg(t);setupSkDrag(t);showToast('✅ Foto diupload!');};
+  r.readAsDataURL(file);input.value='';
+}
+
+var skDragState={active:false,type:null,startY:0,startPos:0};
+document.addEventListener('mousemove',function(e){if(!skDragState.active)return;var d=(skDragState.startY-e.clientY)*.3,np=Math.max(0,Math.min(100,skDragState.startPos+d));skImgData[skYKey(skDragState.type)]=np;skImgEl(skDragState.type).style.objectPosition='50% '+np+'%';});
+document.addEventListener('touchmove',function(e){if(!skDragState.active)return;var d=(skDragState.startY-e.touches[0].clientY)*.3,np=Math.max(0,Math.min(100,skDragState.startPos+d));skImgData[skYKey(skDragState.type)]=np;skImgEl(skDragState.type).style.objectPosition='50% '+np+'%';},{passive:true});
+document.addEventListener('mouseup',function(){if(skDragState.active){skImgEl(skDragState.type).classList.remove('dragging');skDragState.active=false;}});
+document.addEventListener('touchend',function(){if(skDragState.active){skImgEl(skDragState.type).classList.remove('dragging');skDragState.active=false;}});
+function setupSkDrag(t){
+  var img=skImgEl(t);if(!img)return;
+  img.onmousedown=function(e){if(!skEditMode)return;skDragState.active=true;skDragState.type=t;skDragState.startY=e.clientY;skDragState.startPos=skImgData[skYKey(t)];img.classList.add('dragging');e.preventDefault();};
+  img.ontouchstart=function(e){if(!skEditMode)return;skDragState.active=true;skDragState.type=t;skDragState.startY=e.touches[0].clientY;skDragState.startPos=skImgData[skYKey(t)];img.classList.add('dragging');};
+}
+
+function skToggleEdit(){
+  skEditMode = !skEditMode;
+  var panel = document.getElementById('menuSekolahPanel');
+  panel.classList.toggle('edit-mode', skEditMode);
+  document.getElementById('skBtnEdit').style.display = skEditMode ? 'none' : '';
+  document.getElementById('skBtnSave').style.display = skEditMode ? '' : 'none';
+  document.getElementById('skEditBanner').style.display = skEditMode ? 'block' : 'none';
+  ['sk-namaDisplay','sk-judul1','sk-judul2','sk-tanggal','sk-besarJml','sk-kecilJml'].forEach(function(id){
+    var el=document.getElementById(id); if(!el)return;
+    el.contentEditable=skEditMode?'true':'false';
+    el.style.outline='none';
+    el.style.borderBottom=skEditMode?'1.5px dashed rgba(255,255,255,.4)':'';
+  });
+  document.querySelectorAll('.sk-iname,.sk-iprice').forEach(function(el){
+    el.contentEditable=skEditMode?'true':'false';
+    el.style.outline='none';
+    el.style.borderBottom=skEditMode?'1px dashed #95d5b2':'';
+    el.style.cursor=skEditMode?'text':'';
+  });
+  document.querySelectorAll('#sk-giziBody td:not(:first-child)').forEach(function(el){
+    el.contentEditable=skEditMode?'true':'false';
+    el.style.outline='none';
+    el.style.borderBottom=skEditMode?'2px dashed #95d5b2':'';
+  });
+  // show/hide add-item buttons and delete buttons
+  document.querySelectorAll('.sk-btn-add,.sk-btn-del').forEach(function(el){
+    el.style.display=skEditMode?'block':'none';
+  });
+  var skDp=document.getElementById('sk-datePickerBtn');
+  if(skDp){skDp.style.display=skEditMode?'inline-block':'none';}
+  var skDpIn=document.getElementById('sk-datePicker');
+  if(skDpIn){skDpIn.style.display=skEditMode?'block':'none';}
+  skApplyImg('besar'); skApplyImg('kecil');
+  if(skEditMode) showToast('✏️ Mode edit aktif');
+}
+
+function skSaveData(){
+  function fmtRp(n){return 'Rp '+n.toLocaleString('id-ID');}
+  function sumEl(id){
+    return Array.from(document.getElementById(id).querySelectorAll('.sk-iprice')).reduce(function(a,el){
+      return a+(parseInt(el.textContent.replace(/[^0-9]/g,''))||0);
+    },0);
+  }
+  document.getElementById('sk-totalBesar').textContent=fmtRp(sumEl('sk-itemsBesar'));
+  document.getElementById('sk-totalKecil').textContent=fmtRp(sumEl('sk-itemsKecil'));
+  skToggleEdit();
+  showToast('✅ Tersimpan!');
+}
+
+function skAddItem(t){
+  var cont=document.getElementById(t==='besar'?'sk-itemsBesar':'sk-itemsKecil');
+  var div=document.createElement('div');div.className='sk-item';
+  div.innerHTML='<div class="sk-dot"></div>'+
+    '<span class="sk-iname" contenteditable="true" style="flex:1;outline:none;border-bottom:1px dashed #95d5b2;cursor:text;">Item Baru</span>'+
+    '<span class="sk-iprice" contenteditable="true" style="outline:none;border-bottom:1px dashed #95d5b2;cursor:text;white-space:nowrap;">Rp 0</span>'+
+    '<button class="sk-btn-del" onclick="this.parentElement.remove()" style="background:none;border:none;color:#c0392b;font-size:16px;cursor:pointer;padding:0 2px;">×</button>';
+  cont.appendChild(div);
+}
+
+function skUpdateDate(val){
+  if(!val)return;
+  var d=new Date(val);
+  var m=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('sk-tanggal').textContent=d.getDate()+' '+m[d.getMonth()]+' '+d.getFullYear();
+}
+
+function skExportPDF(){
+  var el=document.getElementById('sk-printArea');
+  showToast('⏳ Membuat PDF...');
+  html2canvas(el,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#e8f5ec',logging:false}).then(function(canvas){
+    var pw=210,ph=297,cw=canvas.width,ch=canvas.height;
+    var pdf=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var pages=Math.ceil((pw/cw*ch)/ph);
+    for(var i=0;i<pages;i++){
+      if(i>0)pdf.addPage();
+      var sy=i*ph*(cw/pw),slH=Math.min(ph*(cw/pw),ch-sy);
+      var sc=document.createElement('canvas');sc.width=cw;sc.height=slH;
+      sc.getContext('2d').drawImage(canvas,0,sy,cw,slH,0,0,cw,slH);
+      pdf.addImage(sc.toDataURL('image/jpeg',0.97),'JPEG',0,0,pw,slH*(pw/cw));
+    }
+    pdf.save('Menu_Sekolah.pdf');showToast('✅ PDF berhasil diunduh!');
+  }).catch(function(err){showToast('⚠️ '+err.message);});
+}
+</script>
+
+<!-- ════ MENU SEKOLAH PANEL ════ -->
+<div id="menuSekolahPanel" style="display:none;position:fixed;inset:0;z-index:8500;background:#c8e6c9;overflow-y:auto;">
+
+  <!-- topbar hijau -->
+  <div style="background:#1b4332;padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,.2);">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#52b788;"></div>
+      <span style="font-size:13px;font-weight:700;color:#fff;">🏫 Menu Sekolah</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="skBtnEdit" onclick="skToggleEdit()" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ Edit</button>
+      <button id="skBtnSave" onclick="skSaveData()" style="display:none;background:#e9c46a;color:#0f1f16;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">💾 Simpan</button>
+      <button onclick="skExportPDF()" style="background:#52b788;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">↓ PDF</button>
+      <button onclick="skExportJPG()" style="background:#2d6a4f;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">↓ JPG</button>
+      <button onclick="tutupMenuSekolah()" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">← Kembali</button>
+    </div>
+  </div>
+
+  <div id="skEditBanner" style="display:none;background:#e9c46a;color:#0f1f16;text-align:center;padding:7px;font-size:12px;font-weight:700;">✏️ MODE EDIT AKTIF — Klik teks untuk mengedit</div>
+
+  <div id="sk-printArea">
+  <div style="width:794px;min-height:1123px;margin:24px auto;background:#e8f5ec;position:relative;overflow:hidden;box-shadow:0 8px 60px rgba(0,0,0,.25);">
+    <!-- border frame -->
+    <div style="position:absolute;inset:10px;border:2px solid #1b4332;border-radius:4px;pointer-events:none;z-index:50;"></div>
+    <div style="position:absolute;inset:15px;border:1px solid rgba(82,183,136,.4);border-radius:2px;pointer-events:none;z-index:50;"></div>
+    <!-- corners -->
+    <div style="position:absolute;top:6px;left:6px;width:36px;height:36px;border-top:3px solid #c9a84c;border-left:3px solid #c9a84c;z-index:51;"></div>
+    <div style="position:absolute;top:6px;right:6px;width:36px;height:36px;border-top:3px solid #c9a84c;border-right:3px solid #c9a84c;z-index:51;"></div>
+    <div style="position:absolute;bottom:6px;left:6px;width:36px;height:36px;border-bottom:3px solid #c9a84c;border-left:3px solid #c9a84c;z-index:51;"></div>
+    <div style="position:absolute;bottom:6px;right:6px;width:36px;height:36px;border-bottom:3px solid #c9a84c;border-right:3px solid #c9a84c;z-index:51;"></div>
+
+    <!-- HEADER -->
+    <div style="background:linear-gradient(160deg,#0a1f14 0%,#1b4332 45%,#1f5c3a 100%);padding:32px 48px 28px;position:relative;overflow:hidden;text-align:center;">
+      <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);background-size:20px 20px;"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#c9a84c,#e9c46a,#c9a84c,transparent);"></div>
+      <!-- botanical -->
+      <svg style="position:absolute;left:0;bottom:0;opacity:.14;pointer-events:none;" width="130" height="200" viewBox="0 0 130 200" fill="none">
+        <path d="M65 190 C65 190 15 155 8 105 C1 55 35 15 65 5" stroke="#52b788" stroke-width="1.8" fill="none"/>
+        <ellipse cx="48" cy="56" rx="24" ry="13" fill="#52b788" opacity=".55" transform="rotate(-30 48 56)"/>
+        <ellipse cx="14" cy="69" rx="19" ry="11" fill="#52b788" opacity=".45" transform="rotate(-45 14 69)"/>
+        <circle cx="65" cy="192" r="3.5" fill="#e9c46a" opacity=".7"/>
+      </svg>
+      <svg style="position:absolute;right:0;top:0;opacity:.14;pointer-events:none;transform:scaleX(-1);" width="130" height="200" viewBox="0 0 130 200" fill="none">
+        <path d="M65 190 C65 190 15 155 8 105 C1 55 35 15 65 5" stroke="#95d5b2" stroke-width="1.8" fill="none"/>
+        <ellipse cx="48" cy="56" rx="24" ry="13" fill="#95d5b2" opacity=".5" transform="rotate(-30 48 56)"/>
+        <ellipse cx="14" cy="69" rx="19" ry="11" fill="#95d5b2" opacity=".4" transform="rotate(-45 14 69)"/>
+        <circle cx="65" cy="192" r="3.5" fill="#e9c46a" opacity=".65"/>
+      </svg>
+      <div style="position:relative;z-index:2;">
+        <!-- gold line -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+          <div style="flex:1;max-width:80px;height:1px;background:linear-gradient(to right,transparent,rgba(233,196,106,.7));"></div>
+          <div style="width:7px;height:7px;background:#e9c46a;transform:rotate(45deg);border-radius:1px;"></div>
+          <div style="flex:1;max-width:80px;height:1px;background:linear-gradient(to left,transparent,rgba(233,196,106,.7));"></div>
+        </div>
+        <div style="display:inline-flex;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 24px;margin-bottom:8px;">
+          <span id="sk-namaDisplay" style="font-family:'DM Serif Display',serif;font-size:32px;font-style:italic;color:#fff;letter-spacing:-.02em;">SPPG KARANGDUAK</span>
+        </div>
+        <div style="font-family:'DM Serif Display',serif;font-size:52px;color:#fff;line-height:1;letter-spacing:-.02em;margin-bottom:6px;">
+          <span id="sk-judul1">Menu</span> <em id="sk-judul2" style="color:#95d5b2;font-style:italic;">Hari Ini</em>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.5);border-radius:100px;padding:8px 28px;">
+          <span>📅</span>
+          <span id="sk-tanggal" style="font-size:17px;font-weight:600;color:#e9c46a;letter-spacing:.02em;">26 – 28 Februari 2026</span>
+          <div style="position:relative;display:inline-block;margin-left:4px;">
+            <button id="sk-datePickerBtn" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:3px 10px;font-size:11px;color:#fff;font-weight:600;cursor:pointer;font-family:inherit;">📆</button>
+            <input id="sk-datePicker" type="date" onchange="skUpdateDate(this.value)" style="position:absolute;opacity:0;inset:0;cursor:pointer;display:none;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div style="padding:22px 32px 24px;">
+      <!-- section label -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#95d5b2);"></div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:5px;height:5px;background:#c9a84c;transform:rotate(45deg);border-radius:1px;"></div>
+          <span style="font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#c9a84c;">Detail Menu</span>
+          <div style="width:5px;height:5px;background:#c9a84c;transform:rotate(45deg);border-radius:1px;"></div>
+        </div>
+        <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,#95d5b2);"></div>
+      </div>
+
+      <!-- cards grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+
+        <!-- BALITA -->
+        <div style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid rgba(82,183,136,.2);box-shadow:0 2px 14px rgba(15,31,22,.07);">
+          <div style="background:linear-gradient(145deg,#0d2318,#1b4332,#1f5c3a);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:relative;">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+            <div>
+              <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;">Paket</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:20px;color:#fff;position:relative;z-index:1;">PORSI BESAR</div>
+            </div>
+            <div style="background:#e9c46a;border-radius:10px;padding:5px 10px;text-align:center;min-width:54px;position:relative;z-index:1;">
+              <span id="sk-besarJml" style="font-family:'DM Serif Display',serif;font-size:17px;color:#0f1f16;display:block;line-height:1;">0</span>
+              <span style="font-size:8px;font-weight:700;color:rgba(15,31,22,.6);letter-spacing:.05em;text-transform:uppercase;">porsi</span>
+            </div>
+          </div>
+          <div class="p-card-img-area" id="sk-imgBox-besar" style="display:none">
+            <img id="sk-img-besar" src="" draggable="false">
+            <div class="p-card-img-toolbar">
+              <button class="float-btn" onclick="document.getElementById('skFileBesar').click()">📷</button>
+              <button class="float-btn float-btn-red" onclick="skRemoveImg('besar')">✕</button>
+            </div>
+            <div class="p-card-img-sizebar">
+              <span class="sizebar-lbl">Tinggi</span>
+              <input class="sizebar-inp" type="range" min="80" max="260" value="160" id="sk-sliderBesar" oninput="skResizeImg('besar',this.value)">
+            </div>
+          </div>
+          <div class="p-card-img-ph" id="sk-phBesar" onclick="document.getElementById('skFileBesar').click()">
+            <div class="ph-icon">🍱</div><div class="ph-text">Upload Foto Porsi Besar</div>
+          </div>
+          <div id="sk-itemsBesar" style="padding:8px 12px 4px;display:flex;flex-direction:column;gap:1px;"></div>
+          <div style="padding:4px 12px 8px;">
+            <button class="sk-btn-add" onclick="skAddItem('besar')" style="display:none;width:100%;padding:5px;border-radius:6px;border:1.5px dashed #95d5b2;background:transparent;color:#2d6a4f;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;">+ Tambah Item</button>
+          </div>
+          <div style="margin:4px 12px 10px;padding:8px 14px;background:linear-gradient(120deg,#1b4332,#1f5c3a);border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:9px;color:rgba(255,255,255,.55);font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Total / porsi</span>
+            <span id="sk-totalBesar" style="font-family:'DM Serif Display',serif;font-size:15px;color:#e9c46a;">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- BUMIL & BUSUI -->
+        <div style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid rgba(82,183,136,.2);box-shadow:0 2px 14px rgba(15,31,22,.07);">
+          <div style="background:linear-gradient(145deg,#0d2318,#1b4332,#1f5c3a);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:relative;">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+            <div>
+              <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;">Paket</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:20px;color:#fff;position:relative;z-index:1;">PORSI KECIL</div>
+            </div>
+            <div style="background:#e9c46a;border-radius:10px;padding:5px 10px;text-align:center;min-width:54px;position:relative;z-index:1;">
+              <span id="sk-kecilJml" style="font-family:'DM Serif Display',serif;font-size:17px;color:#0f1f16;display:block;line-height:1;">0</span>
+              <span style="font-size:8px;font-weight:700;color:rgba(15,31,22,.6);letter-spacing:.05em;text-transform:uppercase;">porsi</span>
+            </div>
+          </div>
+          <div class="p-card-img-area" id="sk-imgBox-kecil" style="display:none">
+            <img id="sk-img-kecil" src="" draggable="false">
+            <div class="p-card-img-toolbar">
+              <button class="float-btn" onclick="document.getElementById('skFileKecil').click()">📷</button>
+              <button class="float-btn float-btn-red" onclick="skRemoveImg('kecil')">✕</button>
+            </div>
+            <div class="p-card-img-sizebar">
+              <span class="sizebar-lbl">Tinggi</span>
+              <input class="sizebar-inp" type="range" min="80" max="260" value="160" id="sk-sliderKecil" oninput="skResizeImg('kecil',this.value)">
+            </div>
+          </div>
+          <div class="p-card-img-ph" id="sk-phKecil" onclick="document.getElementById('skFileKecil').click()">
+            <div class="ph-icon">🥡</div><div class="ph-text">Upload Foto Porsi Kecil</div>
+          </div>
+          <div id="sk-itemsKecil" style="padding:8px 12px 4px;display:flex;flex-direction:column;gap:1px;"></div>
+          <div style="padding:4px 12px 8px;">
+            <button class="sk-btn-add" onclick="skAddItem('kecil')" style="display:none;width:100%;padding:5px;border-radius:6px;border:1.5px dashed #95d5b2;background:transparent;color:#2d6a4f;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;">+ Tambah Item</button>
+          </div>
+          <div style="margin:4px 12px 10px;padding:8px 14px;background:linear-gradient(120deg,#1b4332,#1f5c3a);border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:9px;color:rgba(255,255,255,.55);font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Total / porsi</span>
+            <span id="sk-totalKecil" style="font-family:'DM Serif Display',serif;font-size:15px;color:#e9c46a;">Rp 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- divider -->
+      <div style="display:flex;align-items:center;margin:10px 0 12px;">
+        <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(82,183,136,.3),transparent);"></div>
+        <svg width="110" height="14" viewBox="0 0 110 14" fill="none" style="margin:0 14px;">
+          <path d="M0 7 Q27 2 55 7 Q83 12 110 7" stroke="#52b788" stroke-width="1" fill="none"/>
+          <circle cx="55" cy="7" r="3" fill="#c9a84c"/>
+          <circle cx="27" cy="7" r="1.8" fill="#52b788"/>
+          <circle cx="83" cy="7" r="1.8" fill="#52b788"/>
+        </svg>
+        <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(82,183,136,.3),transparent);"></div>
+      </div>
+
+      <!-- Gizi label -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#95d5b2);"></div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:5px;height:5px;background:#c9a84c;transform:rotate(45deg);border-radius:1px;"></div>
+          <span style="font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#c9a84c;">Kandungan Gizi per Porsi</span>
+          <div style="width:5px;height:5px;background:#c9a84c;transform:rotate(45deg);border-radius:1px;"></div>
+        </div>
+        <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,#95d5b2);"></div>
+      </div>
+
+      <!-- Gizi table -->
+      <div style="overflow-x:auto;border-radius:12px;box-shadow:0 2px 10px rgba(15,31,22,.07);">
+        <div style="height:3px;background:linear-gradient(90deg,#1b4332,#52b788,#e9c46a,#52b788,#1b4332);border-radius:12px 12px 0 0;"></div>
+        <table style="width:100%;border-collapse:collapse;background:#fff;">
+          <thead><tr style="background:#1b4332;">
+            <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;">Jenis Porsi</th>
+            <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;">Energi</th>
+            <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;">Protein</th>
+            <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;">Lemak</th>
+            <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;">Karbohidrat</th>
+            <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:left;color:rgba(255,255,255,.8);letter-spacing:.1em;text-transform:uppercase;">Serat</th>
+          </tr></thead>
+          <tbody id="sk-giziBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center;padding:12px 20px 22px;background:#e8f5ec;border-top:1px solid #d8f3dc;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;">
+        <div style="width:50px;height:1px;background:linear-gradient(to right,transparent,#95d5b2);"></div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <div style="width:3px;height:3px;background:#52b788;transform:rotate(45deg);border-radius:1px;"></div>
+          <div style="width:5px;height:5px;background:#c9a84c;transform:rotate(45deg);border-radius:1px;"></div>
+          <div style="width:3px;height:3px;background:#52b788;transform:rotate(45deg);border-radius:1px;"></div>
+        </div>
+        <div style="width:50px;height:1px;background:linear-gradient(to left,transparent,#95d5b2);"></div>
+      </div>
+      <p style="font-size:11px;color:#52b788;letter-spacing:.04em;">© 2026 <strong id="sk-footerName" style="color:#2d6a4f;">SPPG Karangduak</strong> · Menu Harian Digital</p>
+    </div>
+
+  </div>
+  </div><!-- /sk-printArea -->
+<input type="file" id="skFileBesar" accept="image/*" style="display:none" onchange="skHandleImg('besar',this)">
+<input type="file" id="skFileKecil" accept="image/*" style="display:none" onchange="skHandleImg('kecil',this)">
+</div><!-- /menuSekolahPanel -->
+
+<style>
+.sk-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;}
+.sk-item:hover{background:#e8f5ec;}
+.sk-dot{width:5px;height:5px;border-radius:50%;background:#c9a84c;flex-shrink:0;}
+.sk-iname{font-size:12px;font-weight:500;color:#0f1f16;flex:1;}
+.sk-iprice{font-size:12px;font-weight:600;color:#2d6a4f;white-space:nowrap;}
+.sk-jpg-export #sk-footerName{display:none;}
+</style>
+
+</body>
+</html>
